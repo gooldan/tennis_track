@@ -8,7 +8,7 @@ Created on Tue Oct 25 18:39:35 2016
 import cv2
 import numpy as np
 
-cap = cv2.VideoCapture('C:\\Users\\HP\\Desktop\\tennis_tracking\\TennisRedField.mp4')
+cap = cv2.VideoCapture('Main2.mp4')
 isPaused = False
 
 # mouse callback function
@@ -62,15 +62,15 @@ cv2.setMouseCallback('img',draw_circle)
 while(1):
     if not isPaused:
         ret, img = cap.read()
-        mask = np.zeros(img.shape, dtype=np.uint8)
-        roi_corners = np.array([[(0,360),(0,230),(234,100),(400,100),(640,230),(640,360)]], dtype=np.int32)
-        channel_count = img.shape[2]  # i.e. 3 or 4 depending on your img
-        ignore_mask_color = (255,)*channel_count
-        cv2.fillPoly(mask, roi_corners, ignore_mask_color)
+#        mask = np.zeros(img.shape, dtype=np.uint8)
+#        roi_corners = np.array([[(0,360),(0,230),(234,100),(400,100),(640,230),(640,360)]], dtype=np.int32)
+#        channel_count = img.shape[2]  # i.e. 3 or 4 depending on your img
+#        ignore_mask_color = (255,)*channel_count
+#        cv2.fillPoly(mask, roi_corners, ignore_mask_color)
 
         # apply the mask
-        #img = cv2.bitwise_and(img, mask)
-    cv2.imshow('img',img)
+#        img = cv2.bitwise_and(img, mask)
+        #cv2.imshow('img', img)
     if cv2.waitKey(20) & 0xFF == 27:
         break
 
