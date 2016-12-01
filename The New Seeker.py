@@ -8,31 +8,27 @@ def dist(x,y,X,Y):
 cap = cv2.VideoCapture('C:\\Users\\ô\\Documents\\test\\Tennis1.mp4')
 back = cv2.imread('Background.png', 0)
 back2 = cv2.createBackgroundSubtractorMOG2(history=100, detectShadows=0)
-ballfound = False
-xprev=0
-yprev=0
 start=470000
 counter= start
 cap.set(cv2.CAP_PROP_POS_MSEC, start)
-interval = 5
-skip=5
 ret, frame1 = cap.read()
 perFrame=False
 #baseFrame=np.zeros_like(frame)
+frame1 = cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY)
 while True:
     ret, frame2 = cap.read()
     
     # applying mask
-    mask = np.zeros(frame1.shape, dtype=np.uint8)
+    mask = np.zeros(frame2.shape, dtype=np.uint8)
     roi_corners = np.array([[(0,720),(0,460),(480,230),(800,230),(1280,460),(1280,720)]], dtype=np.int32)
-    channel_count = frame1.shape[2]  # i.e. 3 or 4 depending on your img
+    channel_count = frame2.shape[2]  # i.e. 3 or 4 depending on your img
     ignore_mask_color = (255,)*channel_count
     cv2.fillPoly(mask, roi_corners, ignore_mask_color)
-    frame1 = cv2.bitwise_and(frame1, mask)
+    #frame1 = cv2.bitwise_and(frame1, mask)
     frame2 = cv2.bitwise_and(frame2, mask)
 
     
-    frame1 = cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY)
+    #frame1 = cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY)
     frame2 = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
     
     
@@ -105,15 +101,15 @@ while True:
     params.filterByConvexity = True
     params.minConvexity = 0.8
     
-    params.filterByInertia = True
-    params.minInertiaRatio = 0.3
+    #params.filterByInertia = True
+    #params.minInertiaRatio = 0.3
         
     params.filterByArea = True
     params.minArea = 15
-    params.maxArea = 300
+    #params.maxArea = 300
  
-    params.filterByCircularity = True
-    params.minCircularity = 0.3
+    #params.filterByCircularity = True
+    #params.minCircularity = 0.3
 
 
     detector = cv2.SimpleBlobDetector_create(params)
@@ -128,22 +124,20 @@ while True:
             x=elem.pt[0]
             y=elem.pt[1]
             for thing in keypoints1:
-                if np.sqrt((thing.pt[0]-x)*(thing.pt[0]-x)+(thing.pt[1]-y)*(thing.pt[1]-y)) > 150:
-                    res1.append(elem)
+                if dist(thing.pt[0], thing.pt[1], x, y) > 150:
                     res1.append(thing)
     for elem in keypoints2:
             x=elem.pt[0]
             y=elem.pt[1]
             for thing in keypoints2:
-                if np.sqrt((thing.pt[0]-x)*(thing.pt[0]-x)+(thing.pt[1]-y)*(thing.pt[1]-y)) > 150:
-                    res2.append(elem)
+                if dist(thing.pt[0], thing.pt[1], x, y) > 150:
                     res2.append(thing)
     keypoints1.clear()
     keypoints2.clear()
     for elem in res1:
         move=True
         for thing in res2:
-            if np.sqrt((elem.pt[0]-thing.pt[0])*(elem.pt[0]-thing.pt[0])+(elem.pt[1]-thing.pt[1])*(elem.pt[1]-thing.pt[1])) < 15:
+            if np.sqrt((elem.pt[0]-thing.pt[0])*(elem.pt[0]-thing.pt[0])+(elem.pt[1]-thing.pt[1])*(elem.pt[1]-thing.pt[1])) < 1:
                 move=False
                 break
         if move==True:
@@ -151,43 +145,59 @@ while True:
             
             
             
-            
-            
+           
     xnoga = (minx1+minx2)/2
     ynoga = (miny1+miny2)/2
     
+    if len(keypoints2)!=0:
     
-    for elem in keypoints2:
-        if np.sqrt((elem.pt[0]-xnoga)*(elem.pt[0]-xnoga)+(elem.pt[1]-ynoga)*(elem.pt[1]-ynoga)) > 150:
-            keypoints1.append(elem)
-            
-            
-            
-            
+        ball=keypoints2.copy()
+        distanse=0
+        for elem in keypoints2:
+            if (dist(elem.pt[0], elem.pt[1], xnoga, ynoga) > distanse) and (np.sqrt((elem.pt[1] - ynoga)*(elem.pt[1] - ynoga)) > 150):
+                distanse =dist(elem.pt[0], elem.pt[1], xnoga, ynoga)
+                ball.clear()
+                ball.append(elem)
     
-    
-    frame1 = cv2.cvtColor(frame1, cv2.COLOR_GRAY2BGR)
-    frame2 = cv2.cvtColor(frame2, cv2.COLOR_GRAY2BGR)
-    for elem in keypoints1:
-            x=elem.pt[0]
-            y=elem.pt[1]
-            cv2.circle(frame1, (int(x), int(y)), 5, (33, 255, 237), 2) 
-            cv2.putText(frame1, 'BALL', (int(x)+10, int(y)+10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (33, 255, 237), 1)
-            
-    diff1 = cv2.cvtColor(diff1, cv2.COLOR_GRAY2BGR)
-    for elem in keypoints1:
-            x=elem.pt[0]
-            y=elem.pt[1]
-            cv2.circle(diff1, (int(x), int(y)), 5, (0, 150, 0), 2) 
-            cv2.putText(diff1, 'BALL', (int(x)+10, int(y)+10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 150, 0), 1)
+        frame1 = cv2.cvtColor(frame1, cv2.COLOR_GRAY2BGR)
+        frame2 = cv2.cvtColor(frame2, cv2.COLOR_GRAY2BGR)
+        ball1=ball.pop()
+        x=ball1.pt[0]
+        y=ball1.pt[1]
+        cv2.circle(frame1, (int(x), int(y)), 5, (33, 255, 237), 2) 
+        cv2.putText(frame1, 'BALL', (int(x)+10, int(y)+10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (33, 255, 237), 1)
+        #for elem in keypoints1:
+        #        x=elem.pt[0]
+        #        y=elem.pt[1]
+        #        cv2.circle(frame1, (int(x), int(y)), 5, (33, 255, 237), 2) 
+        #        cv2.putText(frame1, 'BALL', (int(x)+10, int(y)+10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (33, 255, 237), 1)
+        #        
+        diff1 = cv2.cvtColor(diff1, cv2.COLOR_GRAY2BGR)
+        x=elem.pt[0]
+        y=elem.pt[1]
+        cv2.circle(diff1, (int(x), int(y)), 5, (0, 150, 0), 2) 
+        cv2.putText(diff1, 'BALL', (int(x)+10, int(y)+10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 250, 0), 1)
+        #for elem in keypoints1:
+        #        x=elem.pt[0]
+        #        y=elem.pt[1]
+        #        cv2.circle(diff1, (int(x), int(y)), 5, (0, 150, 0), 2) 
+        #        cv2.putText(diff1, 'BALL', (int(x)+10, int(y)+10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 250, 0), 1)
+        
+    cv2.circle(frame1, (minx1, miny1), 5, (0, 0, 255), -1)
+    cv2.circle(frame1, (minx2, miny2), 5, (0, 0, 255), -1)
+    cv2.circle(frame1, (Cx, Cy), 5, (0, 150, 0), -1)
+    cv2.line(frame1, (Cx, Cy), (minx1, miny1), (255, 0, 0), 2)
+    cv2.line(frame1, (Cx, Cy), (minx2, miny2), (255, 0, 0), 2)
+    cv2.putText(frame1, 'frame #'+str(start), (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 150, 0), 1)
     
     cv2.imshow("asdasd2",diff1)
     
     cv2.imshow("asdasd1",frame1)
+    
     frame1=frame2     
     
-    delay = 30
-    k = cv2.waitKey(delay)
+    
+    k = cv2.waitKey(5)
     if(k!=-1):
         print (k)
     if k == 27:
