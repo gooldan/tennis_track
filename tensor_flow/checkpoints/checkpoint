@@ -1,0 +1,6 @@
+model_checkpoint_path: "my-model"
+all_model_checkpoint_paths: "data-499"
+all_model_checkpoint_paths: "data-999"
+all_model_checkpoint_paths: "data-1499"
+all_model_checkpoint_paths: "data-1999"
+all_model_checkpoint_paths: "my-model"
